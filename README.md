@@ -25,10 +25,9 @@
 
 | Entregável | Link |
 |---|---|
-| App web (Vercel) | `PREENCHER: https://cardioia-<projeto>.vercel.app` |
+| App web (Vercel) | [Acesse via Web](https://cardioai-seven.vercel.app) |
 | App Android (.apk via EAS Build) | [Download do APK](https://expo.dev/artifacts/eas/ExFZNPJZIaE0wZPJwwFRIU-jsQhmwESnXk7mUzJnXY8.apk) · [página do build](https://expo.dev/accounts/seberino/projects/cardioia/builds/3b23b2fb-c750-4191-8d2a-f28bf11d1c9e) |
-| Simulação IoT no Wokwi (ESP32-S3) | `PREENCHER: https://wokwi.com/projects/<id>` |
-| Simulação IoT no Wokwi (Pico W) | `PREENCHER: https://wokwi.com/projects/<id>` |
+| Simulação IoT no Wokwi (ESP32-S3) | [Link Projeto Woki](https://wokwi.com/projects/480163571338513409) |
 | Vídeo de demonstração (YouTube, não listado) | `PREENCHER` |
 | Relatório técnico (PDF) | [document/relatorio_cardioia.pdf](document/relatorio_cardioia.pdf) |
 | Documento do projeto (template FIAP) | [document/ai_project_document_fiap.md](document/ai_project_document_fiap.md) |
