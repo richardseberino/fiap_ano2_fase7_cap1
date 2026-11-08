@@ -1,0 +1,65 @@
+# CardioIA · implantação completa no Kubernetes
+#   cp config/.env.example config/secrets.env   # edite tokens/senhas/chaves
+#   kubectl apply -k config/
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cardioia
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: cardioia
+    includeSelectors: false
+
+resources:
+  - k8s/namespace.yaml
+  - k8s/infra-mosquitto.yaml
+  - k8s/infra-influxdb.yaml
+  - k8s/infra-telegraf.yaml
+  - k8s/infra-grafana.yaml
+  - k8s/app-multiagente.yaml
+  - k8s/app-chatbot.yaml
+  - k8s/app-vision.yaml
+  - k8s/app-gateway.yaml
+  - k8s/app-iot-simulador.yaml
+  - k8s/acesso-externo.yaml
+
+configMapGenerator:
+  - name: cardioia-config
+    literals:
+      - INFLUX_URL=http://influxdb:8086
+      - MQTT_HOST=mosquitto
+      - MULTIAGENTE_URL=http://multiagente:8001
+      - CHATBOT_URL=http://chatbot:5000
+      - VISION_URL=http://vision:5000
+      - CORS_ORIGINS=*
+  - name: mosquitto-config
+    files: [mosquitto/mosquitto.conf]
+  - name: telegraf-config
+    files: [telegraf/telegraf.conf]
+  - name: grafana-datasources
+    files: [grafana/provisioning/datasources/influxdb.yml]
+  - name: grafana-dashboard-provider
+    files: [grafana/provisioning/dashboards/dashboards.yml]
+  - name: grafana-dashboards
+    files: [grafana/dashboards/cardioia-sinais-vitais.json]
+
+secretGenerator:
+  - name: cardioia-secrets
+    envs: [secrets.env]
+
+# Registro/versão das imagens geradas pelo pipeline (.github/workflows/build-images.yml)
+images:
+  - name: cardioia-gateway
+    newName: ghcr.io/richardseberino/cardioia-gateway
+    newTag: latest
+  - name: cardioia-multiagente
+    newName: ghcr.io/richardseberino/cardioia-multiagente
+    newTag: latest
+  - name: cardioia-chatbot
+    newName: ghcr.io/richardseberino/cardioia-chatbot
+    newTag: latest
+  - name: cardioia-vision
+    newName: ghcr.io/richardseberino/cardioia-vision
+    newTag: latest
+  - name: cardioia-iot-simulador
+    newName: ghcr.io/richardseberino/cardioia-iot-simulador
+    newTag: latest

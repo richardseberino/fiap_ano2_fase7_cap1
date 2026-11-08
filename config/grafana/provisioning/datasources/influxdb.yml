@@ -1,0 +1,16 @@
+apiVersion: 1
+datasources:
+  - name: InfluxDB
+    uid: influxdb-cardioia
+    type: influxdb
+    access: proxy
+    url: ${INFLUX_URL}
+    isDefault: true
+    editable: false
+    jsonData:
+      version: Flux
+      organization: ${INFLUX_ORG}
+      defaultBucket: ${INFLUX_BUCKET}
+      timeInterval: 10s
+    secureJsonData:
+      token: ${INFLUX_TOKEN}

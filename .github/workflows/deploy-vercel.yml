@@ -1,0 +1,43 @@
+# Publica o app (Expo Web) na Vercel: preview em PRs, produção na main.
+# Secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# Variável do repositório: EXPO_PUBLIC_API_URL (URL HTTPS do gateway)
+name: Deploy Vercel
+
+on:
+  push:
+    branches: [main]
+    paths: ["src/mobile/**", ".github/workflows/deploy-vercel.yml"]
+  pull_request:
+    paths: ["src/mobile/**"]
+  workflow_dispatch:
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/mobile/package-lock.json
+      - run: npm ci
+      - run: npm install --global vercel@latest
+      - name: Ambiente
+        id: amb
+        run: echo "alvo=$([ '${{ github.ref }}' = 'refs/heads/main' ] && [ '${{ github.event_name }}' != 'pull_request' ] && echo production || echo preview)" >> "$GITHUB_OUTPUT"
+      - run: vercel pull --yes --environment=${{ steps.amb.outputs.alvo }} --token=${{ secrets.VERCEL_TOKEN }}
+      - run: vercel build ${{ steps.amb.outputs.alvo == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+      - id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ steps.amb.outputs.alvo == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### Publicado: $URL" >> "$GITHUB_STEP_SUMMARY"

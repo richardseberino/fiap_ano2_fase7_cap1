@@ -1,0 +1,472 @@
+{
+  "name": "Assistente Cardiologico Conversacional",
+  "description": "Skill de dialogo para triagem inicial em cardiologia (prototipo educacional FIAP). Exportacao compativel com IBM Watson Assistant.",
+  "language": "pt-br",
+  "learning_opt_out": false,
+  "metadata": {
+    "api_version": {
+      "major_version": "v2",
+      "minor_version": "2018-11-08"
+    }
+  },
+  "workspace_id": "",
+  "counterexamples": [
+    { "text": "qual a previsao do tempo" },
+    { "text": "me conta uma piada" },
+    { "text": "quero pedir uma pizza" }
+  ],
+  "intents": [
+    {
+      "intent": "saudacao",
+      "description": "Cumprimentos iniciais",
+      "examples": [
+        { "text": "oi" },
+        { "text": "ola" },
+        { "text": "bom dia" },
+        { "text": "boa tarde" },
+        { "text": "boa noite" },
+        { "text": "e ai, tudo bem?" },
+        { "text": "oi, preciso de ajuda" }
+      ]
+    },
+    {
+      "intent": "despedida",
+      "description": "Encerramento da conversa",
+      "examples": [
+        { "text": "tchau" },
+        { "text": "ate logo" },
+        { "text": "pode encerrar" },
+        { "text": "era so isso, obrigado" },
+        { "text": "finalizar atendimento" },
+        { "text": "por enquanto e so" }
+      ]
+    },
+    {
+      "intent": "agradecimento",
+      "description": "Agradecimentos",
+      "examples": [
+        { "text": "obrigado" },
+        { "text": "obrigada pela ajuda" },
+        { "text": "valeu" },
+        { "text": "muito grato" }
+      ]
+    },
+    {
+      "intent": "informar_sintoma",
+      "description": "Usuario relata um sintoma cardiovascular",
+      "examples": [
+        { "text": "estou com dor no peito" },
+        { "text": "sinto falta de ar quando subo escada" },
+        { "text": "meu coracao esta acelerado" },
+        { "text": "estou com palpitacoes" },
+        { "text": "sinto tontura e fraqueza" },
+        { "text": "minhas pernas estao inchadas" },
+        { "text": "estou com um aperto no peito ha 1 hora" },
+        { "text": "acordei suando frio com dor no peito" },
+        { "text": "sinto o coracao falhando" },
+        { "text": "estou cansado demais para qualquer esforco" }
+      ]
+    },
+    {
+      "intent": "duvida_medicamento",
+      "description": "Perguntas sobre medicacoes cardiovasculares",
+      "examples": [
+        { "text": "posso parar de tomar o remedio da pressao?" },
+        { "text": "esqueci de tomar o losartana, o que faco?" },
+        { "text": "qual a dose certa do meu remedio do coracao?" },
+        { "text": "esse medicamento tem efeito colateral?" },
+        { "text": "posso tomar aas por conta propria?" }
+      ]
+    },
+    {
+      "intent": "duvida_exame",
+      "description": "Perguntas sobre exames cardiologicos",
+      "examples": [
+        { "text": "que exame eu preciso fazer para o coracao?" },
+        { "text": "para que serve o eletrocardiograma?" },
+        { "text": "o que e um ecocardiograma?" },
+        { "text": "preciso fazer teste ergometrico?" },
+        { "text": "meu resultado do holter deu alterado" }
+      ]
+    },
+    {
+      "intent": "duvida_fatores_risco",
+      "description": "Perguntas sobre fatores de risco cardiovascular",
+      "examples": [
+        { "text": "quais sao os fatores de risco para infarto?" },
+        { "text": "fumar faz mal para o coracao?" },
+        { "text": "tenho colesterol alto e diabetes, tenho risco?" },
+        { "text": "meu pai teve infarto, isso me afeta?" },
+        { "text": "sou sedentario, isso e perigoso?" }
+      ]
+    },
+    {
+      "intent": "agendar_consulta",
+      "description": "Solicitacao de agendamento",
+      "examples": [
+        { "text": "quero marcar uma consulta com cardiologista" },
+        { "text": "como faco para agendar?" },
+        { "text": "preciso de um cardiologista" },
+        { "text": "quando posso ir ao medico?" }
+      ]
+    },
+    {
+      "intent": "informar_dados_pessoais",
+      "description": "Usuario informa nome ou idade",
+      "examples": [
+        { "text": "meu nome e Joao" },
+        { "text": "me chamo Maria" },
+        { "text": "tenho 58 anos" },
+        { "text": "sou o Carlos, tenho 63 anos" }
+      ]
+    },
+    {
+      "intent": "emergencia",
+      "description": "Relato compativel com emergencia cardiaca",
+      "examples": [
+        { "text": "estou com uma dor muito forte no peito e no braco" },
+        { "text": "nao consigo respirar" },
+        { "text": "acho que vou desmaiar" },
+        { "text": "dor no peito ha 30 minutos que nao passa" },
+        { "text": "estou suando frio e com dor no peito muito forte" },
+        { "text": "socorro, estou passando muito mal" }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "entity": "sintoma_cardiaco",
+      "fuzzy_match": true,
+      "values": [
+        { "type": "synonyms", "value": "dor no peito", "synonyms": ["dor toracica", "dores no peito", "dores no torax", "aperto no peito", "peito apertado", "pressao no peito", "peso no peito", "queimacao no peito", "dor no coracao"] },
+        { "type": "synonyms", "value": "dor no braco", "synonyms": ["dor no braco esquerdo", "formigamento no braco", "braco dormente"] },
+        { "type": "synonyms", "value": "falta de ar", "synonyms": ["dificuldade para respirar", "sem folego", "dispneia", "canseira", "ofegante"] },
+        { "type": "synonyms", "value": "palpitacao", "synonyms": ["coracao acelerado", "coracao disparado", "taquicardia", "batedeira", "coracao falhando"] },
+        { "type": "synonyms", "value": "tontura", "synonyms": ["tonteira", "vertigem", "cabeca leve", "sensacao de desmaio"] },
+        { "type": "synonyms", "value": "desmaio", "synonyms": ["sincope", "desmaiei", "apaguei", "perdi os sentidos"] },
+        { "type": "synonyms", "value": "inchaco nas pernas", "synonyms": ["pernas inchadas", "pe inchado", "edema", "tornozelo inchado"] },
+        { "type": "synonyms", "value": "sudorese fria", "synonyms": ["suor frio", "suando frio", "transpiracao fria"] },
+        { "type": "synonyms", "value": "fadiga", "synonyms": ["cansaco", "muito cansado", "sem energia", "fraqueza"] },
+        { "type": "synonyms", "value": "nausea", "synonyms": ["enjoo", "vontade de vomitar"] }
+      ]
+    },
+    {
+      "entity": "intensidade",
+      "values": [
+        { "type": "synonyms", "value": "leve", "synonyms": ["fraca", "levinha", "suave"] },
+        { "type": "synonyms", "value": "moderada", "synonyms": ["media", "mais ou menos", "razoavel"] },
+        { "type": "synonyms", "value": "forte", "synonyms": ["intensa", "bastante forte"] },
+        { "type": "synonyms", "value": "muito forte", "synonyms": ["insuportavel", "excruciante", "pior dor da minha vida", "nota 10"] }
+      ]
+    },
+    {
+      "entity": "irradiacao",
+      "values": [
+        { "type": "synonyms", "value": "braco esquerdo", "synonyms": ["para o braco", "desce para o braco", "irradia para o braco"] },
+        { "type": "synonyms", "value": "mandibula", "synonyms": ["queixo", "maxilar"] },
+        { "type": "synonyms", "value": "costas", "synonyms": ["nas costas", "entre as costas"] },
+        { "type": "synonyms", "value": "pescoco", "synonyms": ["no pescoco"] },
+        { "type": "synonyms", "value": "ombro", "synonyms": ["no ombro"] }
+      ]
+    },
+    {
+      "entity": "sys-number",
+      "values": []
+    },
+    {
+      "entity": "sys-date",
+      "values": []
+    },
+    {
+      "entity": "sys-time",
+      "values": []
+    }
+  ],
+  "dialog_nodes": [
+    {
+      "type": "standard",
+      "title": "Boas-vindas",
+      "conditions": "welcome",
+      "dialog_node": "node_welcome",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Ola! Sou o assistente de triagem inicial em cardiologia. Este e um prototipo educacional e nao substitui avaliacao medica. O que voce esta sentindo hoje?" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Emergencia",
+      "conditions": "#emergencia OR (@sintoma_cardiaco:desmaio) OR (@sintoma_cardiaco:(dor no peito) AND @intensidade:(muito forte)) OR (@sintoma_cardiaco:(dor no peito) AND @sintoma_cardiaco:(sudorese fria))",
+      "dialog_node": "node_emergencia",
+      "previous_sibling": "node_welcome",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "🚨 Os sinais que voce descreveu podem indicar uma EMERGENCIA cardiaca. Ligue AGORA para o 192 (SAMU) ou va ao pronto-socorro mais proximo. Nao dirija e evite esforco. Se ja usa e foi orientado, mastigar AAS pode ser recomendado - siga orientacao medica." }
+            ]
+          }
+        ]
+      },
+      "context": { "classificacao": "EMERGENCIA" }
+    },
+    {
+      "type": "standard",
+      "title": "Saudacao",
+      "conditions": "#saudacao",
+      "dialog_node": "node_saudacao",
+      "previous_sibling": "node_emergencia",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Ola! Posso te ajudar a organizar seus sintomas antes do atendimento. O que voce esta sentindo?" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "frame",
+      "title": "Informar sintoma",
+      "conditions": "#informar_sintoma || @sintoma_cardiaco",
+      "dialog_node": "node_sintoma",
+      "previous_sibling": "node_saudacao",
+      "digress_in": "does_not_return",
+      "digress_out": "allow_returning",
+      "digress_out_slots": "allow_returning",
+      "output": {}
+    },
+    {
+      "type": "slot",
+      "title": "slot_intensidade",
+      "parent": "node_sintoma",
+      "variable": "$intensidade",
+      "dialog_node": "slot_intensidade",
+      "output": {}
+    },
+    {
+      "type": "event_handler",
+      "title": "focus_intensidade",
+      "parent": "slot_intensidade",
+      "event_name": "focus",
+      "dialog_node": "focus_intensidade",
+      "context": {
+        "sintoma": "@sintoma_cardiaco",
+        "intensidade": null,
+        "duracao": null
+      },
+      "output": {
+        "generic": [
+          { "response_type": "text", "values": [ { "text": "Entendi. Anotei: <? @sintoma_cardiaco ?>. Vou fazer algumas perguntas para entender melhor." } ] },
+          { "response_type": "text", "values": [ { "text": "Qual a intensidade? Leve, moderada, forte ou muito forte?" } ] }
+        ]
+      }
+    },
+    {
+      "type": "event_handler",
+      "title": "input_intensidade",
+      "parent": "slot_intensidade",
+      "conditions": "@intensidade",
+      "event_name": "input",
+      "dialog_node": "input_intensidade",
+      "previous_sibling": "focus_intensidade",
+      "context": { "intensidade": "@intensidade" },
+      "output": {}
+    },
+    {
+      "type": "event_handler",
+      "title": "filled_intensidade",
+      "parent": "slot_intensidade",
+      "event_name": "filled",
+      "dialog_node": "filled_intensidade",
+      "previous_sibling": "input_intensidade",
+      "output": {
+        "generic": [
+          { "response_type": "text", "values": [ { "text": "Certo, intensidade <? $intensidade ?>." } ] }
+        ]
+      }
+    },
+    {
+      "type": "slot",
+      "title": "slot_duracao",
+      "parent": "node_sintoma",
+      "variable": "$duracao",
+      "dialog_node": "slot_duracao",
+      "previous_sibling": "slot_intensidade",
+      "output": {}
+    },
+    {
+      "type": "event_handler",
+      "title": "focus_duracao",
+      "parent": "slot_duracao",
+      "event_name": "focus",
+      "dialog_node": "focus_duracao",
+      "output": {
+        "generic": [
+          { "response_type": "text", "values": [ { "text": "Ha quanto tempo isso comecou? (ex.: 10 minutos, 2 horas, 3 dias)" } ] }
+        ]
+      }
+    },
+    {
+      "type": "event_handler",
+      "title": "input_duracao",
+      "parent": "slot_duracao",
+      "conditions": "@sys-number || @sys-time || @sys-date",
+      "event_name": "input",
+      "dialog_node": "input_duracao",
+      "previous_sibling": "focus_duracao",
+      "context": { "duracao": "<? input.text ?>" },
+      "output": {}
+    },
+    {
+      "type": "event_handler",
+      "title": "filled_duracao",
+      "parent": "slot_duracao",
+      "event_name": "filled",
+      "dialog_node": "filled_duracao",
+      "previous_sibling": "input_duracao",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Obrigado. Com base no seu relato (sintoma: <? $sintoma ?>, intensidade: <? $intensidade ?>, inicio: <? $duracao ?>), recomendo procurar atendimento medico para avaliacao e eletrocardiograma. Se surgir dor forte no peito, falta de ar intensa ou desmaio, procure emergencia (192)." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Duvida medicamento",
+      "conditions": "#duvida_medicamento",
+      "dialog_node": "node_medicamento",
+      "previous_sibling": "node_sintoma",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Nao inicie, ajuste ou suspenda remedios do coracao ou da pressao por conta propria - isso deve ser feito pelo medico que acompanha voce. Se esqueceu uma dose, geralmente tome ao lembrar (a menos que esteja perto do proximo horario); nunca dobre a dose. Com dor no peito ou mal-estar agora, procure urgencia." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Duvida exame",
+      "conditions": "#duvida_exame",
+      "dialog_node": "node_exame",
+      "previous_sibling": "node_medicamento",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Exames iniciais comuns: eletrocardiograma (ECG - ritmo), ecocardiograma (ultrassom - estrutura e funcao), Holter 24h (arritmias) e teste ergometrico (sintomas ao esforco). A indicacao depende da sua queixa e deve ser feita pelo cardiologista." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Duvida fatores de risco",
+      "conditions": "#duvida_fatores_risco",
+      "dialog_node": "node_fatores_risco",
+      "previous_sibling": "node_exame",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Principais fatores de risco: hipertensao, diabetes, colesterol alto, tabagismo, sedentarismo, obesidade, historico familiar precoce e idade. Controlar pressao, glicemia e colesterol, parar de fumar, fazer atividade fisica e manter peso saudavel reduzem o risco." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Agendar consulta",
+      "conditions": "#agendar_consulta",
+      "dialog_node": "node_agendar",
+      "previous_sibling": "node_fatores_risco",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "values": [
+              { "text": "Para agendar: pela rede publica, procure a UBS mais proxima para encaminhamento; por plano ou particular, use a central de agendamento da operadora ou clinica. Voce tem algum sintoma agora?" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Dados pessoais",
+      "conditions": "#informar_dados_pessoais",
+      "dialog_node": "node_dados_pessoais",
+      "previous_sibling": "node_agendar",
+      "output": {
+        "generic": [
+          { "response_type": "text", "values": [ { "text": "Anotado. Pode me contar o que esta sentindo?" } ] }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Agradecimento",
+      "conditions": "#agradecimento",
+      "dialog_node": "node_agradecimento",
+      "previous_sibling": "node_dados_pessoais",
+      "output": {
+        "generic": [
+          { "response_type": "text", "values": [ { "text": "Por nada! Posso ajudar em mais alguma coisa?" } ] }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Despedida",
+      "conditions": "#despedida",
+      "dialog_node": "node_despedida",
+      "previous_sibling": "node_agradecimento",
+      "output": {
+        "generic": [
+          { "response_type": "text", "values": [ { "text": "Atendimento encerrado. Se surgir dor no peito, falta de ar intensa ou desmaio, procure emergencia (192). Cuide-se!" } ] }
+        ]
+      }
+    },
+    {
+      "type": "standard",
+      "title": "Anything else (fallback)",
+      "conditions": "anything_else",
+      "dialog_node": "node_anything_else",
+      "previous_sibling": "node_despedida",
+      "output": {
+        "generic": [
+          {
+            "response_type": "text",
+            "selection_policy": "sequential",
+            "values": [
+              { "text": "Desculpe, nao entendi. Voce pode descrever um sintoma (ex.: \"dor no peito ha 1 hora\") ou perguntar sobre exames, medicamentos ou fatores de risco." },
+              { "text": "Ainda nao consegui entender. Este assistente cobre apenas triagem inicial em cardiologia. Em emergencia, ligue 192. Pode reformular?" }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

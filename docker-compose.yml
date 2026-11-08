@@ -1,0 +1,116 @@
+# CardioIA · stack completa para desenvolvimento local (mesmas imagens do Kubernetes)
+#   cp config/.env.example .env && docker compose up -d --build
+# Gateway: http://localhost:8080/api/docs · Grafana: http://localhost:3000 · InfluxDB: http://localhost:8086
+name: cardioia
+
+
+services:
+  # ---------------- infraestrutura ----------------
+  mosquitto:
+    image: eclipse-mosquitto:2.0.20
+    ports: ["1883:1883", "9001:9001"]
+    volumes:
+      - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    ports: ["8086:8086"]
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_ADMIN_USER:-fiap}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_ADMIN_PASSWORD:-fiap@1234}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-fiap}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:-dados-medicos}
+      DOCKER_INFLUXDB_INIT_RETENTION: 30d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:-cardioia-dev-token-troque-em-producao}
+    volumes: [influxdb_data:/var/lib/influxdb2]
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      retries: 10
+    restart: unless-stopped
+
+  telegraf:
+    image: telegraf:1.34-alpine
+    environment: &influx_env
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_TOKEN: ${INFLUX_TOKEN:-cardioia-dev-token-troque-em-producao}
+      INFLUX_ORG: ${INFLUX_ORG:-fiap}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-dados-medicos}
+      MQTT_HOST: mosquitto
+    volumes: [./config/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro]
+    depends_on:
+      influxdb: {condition: service_healthy}
+      mosquitto: {condition: service_started}
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    ports: ["3000:3000"]
+    environment:
+      <<: *influx_env
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/cardioia-sinais-vitais.json
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [influxdb]
+    restart: unless-stopped
+
+  # ---------------- aplicações ----------------
+  multiagente:
+    build: ./src/multiagente
+    image: ghcr.io/richardseberino/cardioia-multiagente:${TAG:-latest}
+    ports: ["8001:8001"]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+    restart: unless-stopped
+
+  chatbot:
+    build: ./src/chatbot
+    image: ghcr.io/richardseberino/cardioia-chatbot:${TAG:-latest}
+    ports: ["5001:5000"]
+    environment:
+      USE_WATSON: ${USE_WATSON:-false}
+      WATSON_APIKEY: ${WATSON_APIKEY:-}
+      WATSON_URL: ${WATSON_URL:-}
+      WATSON_ASSISTANT_ID: ${WATSON_ASSISTANT_ID:-}
+    restart: unless-stopped
+
+  vision:
+    build: ./src/vision
+    image: ghcr.io/richardseberino/cardioia-vision:${TAG:-latest}
+    ports: ["5002:5000"]
+    restart: unless-stopped
+
+  gateway:
+    build: ./src/gateway
+    image: ghcr.io/richardseberino/cardioia-gateway:${TAG:-latest}
+    ports: ["8080:8080"]
+    environment:
+      <<: *influx_env
+      MULTIAGENTE_URL: http://multiagente:8001
+      CHATBOT_URL: http://chatbot:5000
+      VISION_URL: http://vision:5000
+      CORS_ORIGINS: "*"
+    depends_on: [multiagente, chatbot, vision, influxdb]
+    restart: unless-stopped
+
+  iot-simulador:
+    build: ./src/iot
+    image: ghcr.io/richardseberino/cardioia-iot-simulador:${TAG:-latest}
+    environment:
+      MQTT_BROKER: mosquitto
+      MQTT_PREFIXO: cardioia/sinais-vitais
+    depends_on: [mosquitto]
+    restart: unless-stopped
+
+volumes:
+  mosquitto_data:
+  influxdb_data:

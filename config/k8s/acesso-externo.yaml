@@ -1,0 +1,34 @@
+# Acesso externo sem Ingress Controller: Services LoadBalancer.
+# - Docker Desktop / k3s / minikube tunnel: expostos em localhost
+# - Nuvem (EKS/GKE/AKS/OKE): recebem IP público do balanceador do provedor
+# Para HTTPS com domínio próprio, use também o overlay config/k8s/ingress.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-externo
+  labels: {app: gateway}
+spec:
+  type: LoadBalancer
+  selector: {app: gateway}
+  ports: [{name: http, port: 8080, targetPort: http}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-externo
+  labels: {app: grafana}
+spec:
+  type: LoadBalancer
+  selector: {app: grafana}
+  ports: [{name: http, port: 3000, targetPort: http}]
+---
+# Dispositivos IoT físicos (ESP32-S3 / Pico W na mesma rede) publicam direto aqui.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto-externo
+  labels: {app: mosquitto}
+spec:
+  type: LoadBalancer
+  selector: {app: mosquitto}
+  ports: [{name: mqtt, port: 1883, targetPort: mqtt}]

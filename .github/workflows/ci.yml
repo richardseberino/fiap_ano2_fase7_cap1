@@ -1,0 +1,74 @@
+# Integração contínua: testes de todos os componentes a cada push/PR
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    name: Testes Python (${{ matrix.servico }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {servico: gateway, dir: src/gateway, cmd: "pytest -q"}
+          - {servico: multiagente, dir: src/multiagente, cmd: "pytest -q"}
+          - {servico: chatbot, dir: src/chatbot, cmd: "pytest -q tests"}
+          - {servico: iot, dir: src/iot, cmd: "pytest -q tests", req: firmware/requirements.txt}
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r ${{ matrix.req || 'requirements.txt' }}
+      - run: ${{ matrix.cmd }}
+        env:
+          HISTORICO_DB: /tmp/historico.db
+
+  firmware:
+    name: Firmware MicroPython (mpy-cross)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install mpy-cross
+      - name: Compila todos os módulos para bytecode MicroPython
+        run: for f in src/iot/firmware/*.py; do mpy-cross "$f" && echo "OK $f"; done
+
+  mobile:
+    name: App (typecheck, lint, export web)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/mobile/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx expo lint
+      - run: npx expo export -p web
+
+  kubernetes:
+    name: Manifests Kubernetes (kustomize)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp config/.env.example config/secrets.env
+      - run: kubectl kustomize config/ > cardioia-render.yaml && kubectl kustomize config/k8s/ingress > /dev/null
+      - name: Valida esquemas
+        uses: docker://ghcr.io/yannh/kubeconform:v0.6.7
+        with:
+          args: "-summary -strict -ignore-missing-schemas cardioia-render.yaml"

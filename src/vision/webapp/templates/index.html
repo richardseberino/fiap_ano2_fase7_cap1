@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classificador de ECG</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header>
+    <h1>Classificador de ECG</h1>
+    <p>Envie uma imagem de eletrocardiograma para obter a classificação diagnóstica</p>
+  </header>
+
+  <main>
+    <!-- Upload form -->
+    <section class="upload-card">
+      <form method="POST" action="/predict" enctype="multipart/form-data">
+        <label class="drop-area" for="image-input" id="drop-label">
+          <span class="icon">📁</span>
+          <span id="file-name">Clique ou arraste uma imagem aqui</span>
+          <small>PNG, JPG, BMP, TIFF — até 32 MB</small>
+          <input type="file" id="image-input" name="image" accept="image/*" required />
+        </label>
+        <button type="submit" class="btn-primary">Classificar</button>
+      </form>
+
+      {% if error %}
+      <div class="alert error">{{ error }}</div>
+      {% endif %}
+    </section>
+
+    <!-- Results -->
+    {% if results %}
+    <section class="results">
+      <div class="result-image">
+        <h2>Imagem enviada</h2>
+        <p class="filename">{{ filename }}</p>
+        <img src="{{ image_data }}" alt="ECG enviado" />
+      </div>
+
+      <div class="result-details">
+        <h2>Resultado</h2>
+
+        <div class="verdict" style="border-color: {{ predicted_color }}; background: {{ predicted_color }}18;">
+          <span class="verdict-label">Diagnóstico</span>
+          <span class="verdict-class" style="color: {{ predicted_color }};">{{ predicted_label }}</span>
+          <span class="verdict-confidence">Confiança: <strong>{{ confidence }}%</strong></span>
+        </div>
+
+        <h3>Probabilidades por classe</h3>
+        <ul class="prob-list">
+          {% for r in results %}
+          <li>
+            <div class="prob-header">
+              <span class="prob-label">{{ r.label }}</span>
+              <span class="prob-value">{{ r.percent }}%</span>
+            </div>
+            <div class="prob-bar-bg">
+              <div class="prob-bar" style="width: {{ r.percent }}%; background: {{ r.color }};"></div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  <script>
+    const input = document.getElementById('image-input');
+    const label = document.getElementById('file-name');
+    input.addEventListener('change', () => {
+      label.textContent = input.files[0]?.name ?? 'Clique ou arraste uma imagem aqui';
+    });
+  </script>
+</body>
+</html>

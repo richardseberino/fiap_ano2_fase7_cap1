@@ -1,0 +1,17 @@
+.env
+config/secrets.env
+**/.venv/
+**/__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+src/mobile/dist/
+src/mobile/.expo/
+src/mobile/android/
+src/mobile/ios/
+*.apk
+*.aab
+src/multiagente/data/*.db
+src/vision/cnn_ecg_model.keras
+.vercel
+scripts/.venv-docs/

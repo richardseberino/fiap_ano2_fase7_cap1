@@ -1,0 +1,72 @@
+{
+  "recomendacao": {
+    "paciente_id": "PAC-001-enunciado",
+    "probabilidade_pico_risco": 0.99,
+    "classificacao_risco": "ALTO",
+    "fatores_de_risco": [
+      "Carga do sistema acima de 80% (valor: 92)",
+      "Tempo de espera acima de 60 min (valor: 75)",
+      "SpO2 abaixo de 92% (valor: 89)",
+      "Frequência cardíaca acima de 110 bpm (valor: 118)",
+      "Mais de 4 eventos nas últimas 24 h (valor: 5)",
+      "Disponibilidade de recursos abaixo de 40% (valor: 25)"
+    ],
+    "protocolos_sugeridos": [
+      "Se risco sistêmico alto → ativar estado de emergência",
+      "Se carga do sistema > 85% → abrir unidades temporárias",
+      "Se disponibilidade_recursos < 30% → redistribuir insumos",
+      "Se densidade_eventos > 6 → ativar plano de contingência"
+    ],
+    "acoes_operacionais": [
+      {
+        "prioridade": 2,
+        "acao": "Declarar estado de emergência e comunicar a direção clínica",
+        "responsavel": "Direção clínica",
+        "prazo": "Até 30 min",
+        "protocolo_origem": "Se risco sistêmico alto → ativar estado de emergência"
+      },
+      {
+        "prioridade": 3,
+        "acao": "Abrir leitos e unidades temporárias para absorver a demanda",
+        "responsavel": "Gestão de leitos",
+        "prazo": "Até 2 h",
+        "protocolo_origem": "Se carga do sistema > 85% → abrir unidades temporárias"
+      },
+      {
+        "prioridade": 3,
+        "acao": "Redistribuir insumos e equipamentos entre as unidades",
+        "responsavel": "Farmácia e logística hospitalar",
+        "prazo": "Até 1 h",
+        "protocolo_origem": "Se disponibilidade_recursos < 30% → redistribuir insumos"
+      },
+      {
+        "prioridade": 3,
+        "acao": "Ativar o plano de contingência e reforçar escalas",
+        "responsavel": "Coordenação de plantão",
+        "prazo": "Até 1 h",
+        "protocolo_origem": "Se densidade_eventos > 6 → ativar plano de contingência"
+      }
+    ],
+    "parametros_em_atencao": [
+      "spo2_media = 89% (limite < 88%, protocolo P01 ainda não acionado)",
+      "fc_media = 118 bpm (limite > 120 bpm, protocolo P03 ainda não acionado)",
+      "eventos_24h = 5 eventos (limite > 5 eventos, protocolo P04 ainda não acionado)",
+      "tempo_espera = 75 min (limite > 90 min, protocolo P06 ainda não acionado)",
+      "temperatura = 37.5 °C (limite > 38 °C, protocolo P07 ainda não acionado)",
+      "pa_sistolica = 100 mmHg (limite < 90 mmHg, protocolo P09 ainda não acionado)"
+    ],
+    "justificativa": "A alta probabilidade de risco sistêmico, associada a fatores como carga elevada do sistema, tempo de espera prolongado, baixa saturação de oxigênio e frequência cardíaca elevada, justifica a ativação dos protocolos de emergência e contingência. A recomendação visa mitigar os impactos da sobrecarga e garantir recursos adequados para o atendimento do paciente.",
+    "aviso": "Apoio à decisão gerado com dados sintéticos para fins acadêmicos. Não substitui avaliação médica."
+  },
+  "trilha": [
+    "Handoff para Agente Analista de Risco",
+    "Modelo de ML: probabilidade 0.99 (ALTO)",
+    "Handoff para Agente Orquestrador",
+    "Handoff para Agente Especialista em Protocolos",
+    "Base de protocolos: 4 protocolo(s) acionado(s)",
+    "Handoff para Agente Orquestrador",
+    "Handoff para Agente Planejador de Resposta",
+    "Plano operacional: 4 ação(ões)",
+    "Guardrail de saída: aprovado"
+  ]
+}

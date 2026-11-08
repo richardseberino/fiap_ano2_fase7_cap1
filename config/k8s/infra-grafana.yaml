@@ -1,0 +1,48 @@
+# Painéis de sinais vitais (datasource e dashboard provisionados por ConfigMap: sem estado)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels: {app: grafana, tier: infra}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: grafana}}
+  template:
+    metadata: {labels: {app: grafana, tier: infra}}
+    spec:
+      securityContext: {fsGroup: 472}
+      containers:
+        - name: grafana
+          image: grafana/grafana:11.6.0
+          ports: [{name: http, containerPort: 3000}]
+          envFrom:
+            - configMapRef: {name: cardioia-config}
+            - secretRef: {name: cardioia-secrets}
+          env:
+            - {name: GF_SECURITY_ADMIN_USER, value: admin}
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: GRAFANA_ADMIN_PASSWORD}}
+            - {name: GF_AUTH_ANONYMOUS_ENABLED, value: "true"}
+            - {name: GF_AUTH_ANONYMOUS_ORG_ROLE, value: Viewer}
+            - {name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH, value: /var/lib/grafana/dashboards/cardioia-sinais-vitais.json}
+          volumeMounts:
+            - {name: datasources, mountPath: /etc/grafana/provisioning/datasources}
+            - {name: dashboard-provider, mountPath: /etc/grafana/provisioning/dashboards}
+            - {name: dashboards, mountPath: /var/lib/grafana/dashboards}
+          readinessProbe: {httpGet: {path: /api/health, port: http}, periodSeconds: 10}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 512Mi}
+      volumes:
+        - {name: datasources, configMap: {name: grafana-datasources}}
+        - {name: dashboard-provider, configMap: {name: grafana-dashboard-provider}}
+        - {name: dashboards, configMap: {name: grafana-dashboards}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels: {app: grafana}
+spec:
+  selector: {app: grafana}
+  ports: [{name: http, port: 3000, targetPort: http}]

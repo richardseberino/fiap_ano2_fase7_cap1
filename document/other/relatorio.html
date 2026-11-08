@@ -1,0 +1,461 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>CardioIA · Relatório</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: Inter, 'Segoe UI', Helvetica, Arial, sans-serif; color: #0E1A1F; font-size: 10.5pt; line-height: 1.5; }
+h1 { font-size: 20pt; color: #0B7A84; margin: 18pt 0 8pt; border-bottom: 2px solid #DDF0F1; padding-bottom: 4pt; }
+h1.quebra { page-break-before: always; }
+h2 { font-size: 14pt; color: #0E1A1F; margin: 14pt 0 6pt; }
+h3 { font-size: 11.5pt; color: #0B7A84; margin: 12pt 0 4pt; }
+h4 { font-size: 11pt; margin: 4pt 0; font-weight: 600; color: #5B6B73; }
+p, li { text-align: justify; }
+table { border-collapse: collapse; width: 100%; margin: 8pt 0 12pt; font-size: 9pt; page-break-inside: avoid; }
+th { background: #0B7A84; color: #fff; text-align: left; padding: 5pt 6pt; }
+td { border-bottom: 1px solid #DDE5E8; padding: 4pt 6pt; vertical-align: top; }
+tr:nth-child(even) td { background: #F3F6F7; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: 8.8pt; background: #EAF0F2; padding: 0 3px; border-radius: 3px; }
+img { max-width: 100%; page-break-inside: avoid; }
+a { color: #0B7A84; text-decoration: none; }
+</style></head><body><p><img src="file:///Users/seberino/dev/fiap_ano2_fase7_cap1/assets/logo-fiap.png" alt="FIAP - Faculdade de Informática e Admnistração Paulista" border="0" width=30% height=30%></p>
+<h1>AI Project Document - CardioIA · Plataforma Integrada de Monitoramento Cardiológico</h1>
+<h2>Grupo DRELL</h2>
+<h4>Richard Marques · Luis Fernando dos Santos Costa</h4>
+<p>Tutor: Leo Ruiz · Coordenador: Andre Godoi · Ano 2, Fase 7</p>
+<h2>Sumário</h2>
+<p><a href="#c1">1. Introdução</a></p>
+<p><a href="#c2">2. Visão Geral do Projeto</a></p>
+<p><a href="#c3">3. Desenvolvimento do Projeto</a></p>
+<p><a href="#c4">4. Resultados e Avaliações</a></p>
+<p><a href="#c5">5. Conclusões e Trabalhos Futuros</a></p>
+<p><a href="#c6">6. Referências</a></p>
+<p><a href="#c7">Anexos</a></p>
+<p><br></p>
+<h1><a name="c1"></a>1. Introdução</h1>
+<h2>1.1. Escopo do Projeto</h2>
+<h3>1.1.1. Contexto da Inteligência Artificial</h3>
+<p>As doenças cardiovasculares são a principal causa de morte no Brasil e no mundo. Em serviços de urgência, o tempo entre a alteração de um sinal vital e a resposta da equipe afeta diretamente o desfecho. A IA aplicada à saúde costuma aparecer em frentes separadas: monitoramento contínuo por dispositivos IoT, modelos preditivos de deterioração, assistentes de triagem conversacional e visão computacional sobre exames de imagem. Cada frente gera valor sozinha, mas o maior ganho surge quando elas compartilham dados e aparecem para o usuário em um único canal.</p>
+<p>Nas fases anteriores o grupo construiu cada uma dessas frentes isoladamente. O escopo desta fase é a <strong>integração</strong>: transformar cinco protótipos independentes em uma plataforma única, conteinerizada, implantável em Kubernetes e acessível pelo celular. O contexto é acadêmico e regional (instituições de saúde de pequeno e médio porte), com dados sintéticos.</p>
+<h3>1.1.2. Descrição da Solução Desenvolvida</h3>
+<p>O CardioIA integra quatro camadas:</p>
+<ol>
+<li><strong>Edge:</strong> monitor de sinais vitais em MicroPython, portável entre ESP32, ESP32-S3, Raspberry Pi Pico W e Linux. Ele calcula médias móveis, classifica a leitura e aciona alarmes localmente, e guarda as mensagens quando a rede falha.</li>
+<li><strong>Ingestão e observabilidade:</strong> MQTT (Mosquitto), Telegraf, InfluxDB e Grafana, todos provisionados de forma declarativa.</li>
+<li><strong>Inteligência:</strong> sistema multiagente (OpenAI Agents SDK com Random Forest), chatbot de triagem (NLP local ou IBM Watson) e CNN de classificação de ECG, cada um exposto como serviço HTTP.</li>
+<li><strong>Experiência:</strong> gateway FastAPI como ponto único de entrada e app Expo publicado como site na Vercel e como APK Android pelo EAS Build.</li>
+</ol>
+<p>O valor está no fluxo contínuo. Uma leitura crítica no sensor aparece no celular em até 10 segundos e pode virar uma análise multiagente com um toque, já pré-preenchida com as médias recentes do paciente. O usuário pode então conversar com o assistente sobre o resultado ou enviar um ECG para classificação.</p>
+<h1 class="quebra"><a name="c2"></a>2. Visão Geral do Projeto</h1>
+<h2>2.1. Objetivos do Projeto</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Objetivo</th>
+<th>Como foi atendido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O1</td>
+<td>Organizar os subprojetos em uma arquitetura integrada</td>
+<td>Gateway (BFF) único; contrato MQTT/JSON padronizado; o IoT alimenta a análise multiagente</td>
+</tr>
+<tr>
+<td>O2</td>
+<td>Infraestrutura (InfluxDB, Mosquitto, Grafana) em containers</td>
+<td>Imagens oficiais com versões fixas; configuração por arquivo (Telegraf no lugar do Node-RED manual); setup automático do InfluxDB</td>
+</tr>
+<tr>
+<td>O3</td>
+<td>Deploy de todos os componentes em Kubernetes</td>
+<td>Kustomize com 29 recursos: Deployments, StatefulSet com PVC, Services, HPA, PDB, Secrets, ConfigMaps e Ingress opcional</td>
+</tr>
+<tr>
+<td>O4</td>
+<td>Uma imagem de container por aplicação</td>
+<td>Dockerfiles para gateway, multiagente, chatbot, vision e simulador IoT; pipeline publica imagens multi-arquitetura no GHCR</td>
+</tr>
+<tr>
+<td>O5</td>
+<td>Migrar o IoT para MicroPython portável e mais potente</td>
+<td>Firmware modular com HAL para 4 plataformas, edge computing e fila offline; validado no Wokwi, com <code>mpy-cross</code> e testes em CPython</td>
+</tr>
+<tr>
+<td>O6</td>
+<td>Interface mobile com sinais vitais, análise, chatbot e ECG</td>
+<td>App Expo com 5 telas e layout mobile-first</td>
+</tr>
+<tr>
+<td>O7</td>
+<td>Pipeline para Vercel e build EAS</td>
+<td>Workflows <code>deploy-vercel.yml</code> (preview e produção) e <code>eas-build.yml</code> (APK)</td>
+</tr>
+<tr>
+<td>O8</td>
+<td>Documentar no padrão FIAP</td>
+<td>README no template, este documento, relatório em PDF e diagrama</td>
+</tr>
+</tbody>
+</table>
+<h2>2.2. Público-Alvo</h2>
+<ul>
+<li><strong>Equipes assistenciais</strong> (enfermagem, médicos plantonistas): acompanham sinais vitais e alertas, executam a análise de risco e consultam as ações recomendadas.</li>
+<li><strong>Pacientes em acompanhamento:</strong> usam o assistente de triagem para descrever sintomas e receber orientação de conduta, com encaminhamento para o 192 em caso de sinal de alarme.</li>
+<li><strong>Gestores e equipe de TI hospitalar:</strong> operam a plataforma no Kubernetes e usam o Grafana para observar os dados.</li>
+</ul>
+<h2>2.3. Metodologia</h2>
+<p>O trabalho seguiu ciclos curtos, orientados por integração:</p>
+<ol>
+<li><strong>Inventário:</strong> leitura dos cinco projetos, com levantamento de contratos (entradas e saídas), dependências e pontos frágeis. Exemplos: modelo da CNN ausente do repositório, Node-RED configurado à mão, SpO2 simulada pela umidade do DHT22, frontend com regras estáticas.</li>
+<li><strong>Contratos primeiro:</strong> definição do payload MQTT, das rotas do gateway e do esquema de dados do multiagente, já validado por Pydantic.</li>
+<li><strong>Serviços:</strong> cada motor de IA ganhou uma API HTTP e um Dockerfile, preservando o código e os testes existentes.</li>
+<li><strong>Integração local</strong> com Docker Compose e testes de fumaça ponta a ponta (<code>scripts/teste-integracao.sh</code>).</li>
+<li><strong>Kubernetes:</strong> manifests gerados a partir de um molde comum (probes, recursos, segurança), validados com kustomize e kubeconform.</li>
+<li><strong>App:</strong> desenvolvimento mobile-first com Expo, verificado no navegador contra o backend real.</li>
+<li><strong>Automação e documentação:</strong> pipelines de CI/CD, diagrama, relatório e roteiro de demonstração.</li>
+</ol>
+<h1 class="quebra"><a name="c3"></a>3. Desenvolvimento do Projeto</h1>
+<h2>3.1. Tecnologias Utilizadas</h2>
+<table>
+<thead>
+<tr>
+<th>Camada</th>
+<th>Tecnologias</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Edge / IoT</td>
+<td>MicroPython (ESP32, ESP32-S3, RP2040/RP2350), <code>umqtt.simple</code>, <code>dht</code>, <code>framebuf</code>/SSD1306, CPython + paho-mqtt (Linux), Wokwi</td>
+</tr>
+<tr>
+<td>Mensageria e dados</td>
+<td>Eclipse Mosquitto 2.0, Telegraf 1.34 (<code>mqtt_consumer</code> + <code>json_v2</code>), InfluxDB 2.7 (Flux), Grafana 11.6</td>
+</tr>
+<tr>
+<td>IA</td>
+<td>OpenAI Agents SDK 0.23 (handoffs, tools, guardrails, <code>SQLiteSession</code>), scikit-learn 1.9 (Random Forest), TensorFlow/Keras 2.21 (CNN), NLP por regras / IBM Watson Assistant</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Python 3.12, FastAPI, Uvicorn, httpx, influxdb-client, Flask, Gunicorn, Pydantic 2</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>Expo SDK 58, React Native 0.88, React 19, Expo Router, react-native-svg, expo-image-picker, AsyncStorage</td>
+</tr>
+<tr>
+<td>Infraestrutura</td>
+<td>Docker / Buildx (amd64 e arm64), Docker Compose, Kubernetes 1.36, Kustomize, HPA, PDB</td>
+</tr>
+<tr>
+<td>CI/CD</td>
+<td>GitHub Actions, GHCR, Vercel CLI, EAS Build, kubeconform, mpy-cross, pytest, ESLint, TypeScript</td>
+</tr>
+</tbody>
+</table>
+<h2>3.2. Modelagem e Algoritmos</h2>
+<h3>Arquitetura de integração</h3>
+<p>O <strong>gateway</strong> (padrão <em>Backend for Frontend</em>) recebe todas as chamadas do app e as roteia para os serviços internos (Services ClusterIP), que não ficam expostos. O gateway não guarda estado e escala com HPA. Os motores de IA continuam independentes: cada um tem sua imagem, seus recursos e seu ciclo de vida. A decisão permite trocar um modelo, por exemplo da CNN para a ResNet, sem afetar o restante da plataforma.</p>
+<p>A integração nova mais relevante é <strong>IoT → multiagente</strong>. O endpoint <code>/api/analise/sugestao/{paciente}</code> consulta o InfluxDB, calcula as médias da janela recente (FC, SpO2, temperatura, PAS) e conta os episódios de alerta das últimas 24 h, ou seja, as transições de normal para alerta, e não cada amostra. O resultado vira os campos <code>eventos_24h</code> e <code>densidade_eventos</code> do modelo preditivo. Os campos operacionais, como carga do sistema e tempo de espera, não vêm de sensores e ficam para o usuário preencher.</p>
+<h3>Edge computing (MicroPython)</h3>
+<table>
+<thead>
+<tr>
+<th>Técnica</th>
+<th>Implementação</th>
+<th>Motivo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Filtragem</td>
+<td>Média móvel de 10 amostras (buffer circular)</td>
+<td>Reduz ruído e volume transmitido</td>
+</tr>
+<tr>
+<td>Classificação local</td>
+<td>Limites de atenção e de crítico alinhados aos protocolos do multiagente</td>
+<td>Alarme imediato e coerente com a análise central, mesmo offline</td>
+</tr>
+<tr>
+<td>Publicação por evento</td>
+<td>Período de 10 s, com envio imediato se o nível piorar ou houver pânico</td>
+<td>Latência mínima nos eventos críticos sem saturar a rede</td>
+</tr>
+<tr>
+<td>Store-and-forward</td>
+<td>Fila limitada (60 mensagens) com número de sequência</td>
+<td>Tolerância a falhas de conectividade</td>
+</tr>
+<tr>
+<td>Portabilidade</td>
+<td>HAL (<code>placa.py</code>) e lógica pura (<code>edge.py</code>)</td>
+<td>O mesmo código no microcontrolador e em hardware mais potente</td>
+</tr>
+</tbody>
+</table>
+<h3>Motores de IA (reaproveitados e expostos como serviço)</h3>
+<ul>
+<li><strong>Multiagente:</strong> topologia <em>hub-and-spoke</em>. O Orquestrador transfere o atendimento para o Analista de Risco, que chama o Random Forest por uma <em>tool</em>; depois para o Especialista em Protocolos, que consulta a base de 10 protocolos; e por fim para o Planejador de Resposta, que produz a saída estruturada <code>RecomendacaoFinal</code>. O contexto é compartilhado, então nenhum agente digita valores clínicos. Há guardrail de entrada (bloqueia prescrição) e de saída (confere a resposta do LLM contra o contexto). A API cai automaticamente para o modo offline determinístico quando não há chave ou quando o LLM falha.</li>
+<li><strong>Chatbot:</strong> 10 intents, 6 entities, coleta guiada por slots e 7 regras de sinal de alarme avaliadas a cada turno; resposta com classificação de risco e conduta.</li>
+<li><strong>Vision:</strong> CNN com 3 blocos convolucionais (32, 64 e 128 filtros) sobre imagens de 224×224, classificando 4 classes de ECG.</li>
+</ul>
+<h2>3.3. Treinamento e Teste</h2>
+<p>Os modelos foram treinados nas fases anteriores e reaproveitados sem retreino:</p>
+<table>
+<thead>
+<tr>
+<th>Modelo</th>
+<th>Dados</th>
+<th>Métrica principal (teste)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random Forest (pico de risco)</td>
+<td>5.000 registros sintéticos, 10 variáveis (80/20 estratificado, validação cruzada)</td>
+<td>Acurácia 99,9% · Precisão 100% · Recall 99,6% · ROC AUC 1,00</td>
+</tr>
+<tr>
+<td>Regressão Logística / Árvore de Decisão (comparação)</td>
+<td>mesma base</td>
+<td>Acurácia 81,6% / 99,7%</td>
+</tr>
+<tr>
+<td>CNN do zero (ECG)</td>
+<td>base Kaggle de ECG, 4 classes</td>
+<td>Acurácia 97,6% · val_loss 0,0615</td>
+</tr>
+<tr>
+<td>ResNet50 com fine-tuning (comparação)</td>
+<td>mesma base</td>
+<td>Acurácia 84,05%</td>
+</tr>
+</tbody>
+</table>
+<p>Nesta fase o foco dos testes foi a <strong>integração</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Suíte</th>
+<th>Escopo</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gateway (pytest)</td>
+<td>roteamento, sugestão IoT → análise, chat com <code>analise_id</code>, upload de ECG, validação anti-injeção Flux</td>
+<td>12/12</td>
+</tr>
+<tr>
+<td>Multiagente (pytest)</td>
+<td>modelo, protocolos, pipeline com LLM roteirizado, guardrails e API HTTP</td>
+<td>18/18</td>
+</tr>
+<tr>
+<td>Chatbot (pytest)</td>
+<td>intents, entities, fluxo, emergência e fallback</td>
+<td>17/17</td>
+</tr>
+<tr>
+<td>Firmware (pytest em CPython)</td>
+<td>média móvel, classificação, fila offline, ciclo do dispositivo, store-and-forward</td>
+<td>11/11</td>
+</tr>
+<tr>
+<td>Firmware (mpy-cross)</td>
+<td>compilação de todos os módulos para bytecode MicroPython</td>
+<td>8/8</td>
+</tr>
+<tr>
+<td>App</td>
+<td>TypeScript estrito e ESLint (regras do React Compiler)</td>
+<td>sem erros</td>
+</tr>
+<tr>
+<td>Manifests</td>
+<td>kustomize e kubeconform (modo estrito)</td>
+<td>29/29 válidos</td>
+</tr>
+<tr>
+<td>Ponta a ponta (compose)</td>
+<td>saúde, IoT, série, sugestão, análise, chat e ECG pelo gateway</td>
+<td>7/7</td>
+</tr>
+</tbody>
+</table>
+<h1 class="quebra"><a name="c4"></a>4. Resultados e Avaliações</h1>
+<h2>4.1. Análise dos Resultados</h2>
+<p><strong>Fluxo de dados.</strong> Com a stack em execução, os cinco pacientes virtuais (perfis estável, taquicardia, hipoxemia, febril e choque) publicam a cada 10 s. As leituras chegam ao InfluxDB, ao Grafana e ao app (Anexo B). O paciente com perfil de choque (FC ≈ 126, SpO2 ≈ 87%, PAS ≈ 84) é classificado como <strong>crítico</strong> no próprio dispositivo. A análise multiagente feita com os dados sugeridos pelo IoT retornou probabilidade de pico de risco de <strong>0,99 (ALTO)</strong>, com 6 protocolos acionados e 6 ações operacionais priorizadas. Edge e análise central concordaram, como esperado, porque os limites foram alinhados de propósito.</p>
+<p><strong>Desempenho observado (ambiente local, Apple Silicon):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operação</th>
+<th>Tempo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sensor → app (pior caso)</td>
+<td>≈ 10 s, o período de envio; eventos críticos são publicados na hora</td>
+</tr>
+<tr>
+<td>Análise multiagente, modo offline</td>
+<td>&lt; 100 ms</td>
+</tr>
+<tr>
+<td>Análise multiagente, modo LLM</td>
+<td>dezenas de segundos, conforme o modelo e a rede (timeout de 180 s no gateway)</td>
+</tr>
+<tr>
+<td>Classificação de ECG (CNN, CPU)</td>
+<td>≈ 150 ms</td>
+</tr>
+<tr>
+<td>Tamanho das imagens</td>
+<td>gateway 302 MB · chatbot 238 MB · simulador 217 MB · multiagente 1,0 GB · vision 2,8 GB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Diferenças em relação ao esperado.</strong> A imagem do vision ficou grande (2,8 GB) por causa do TensorFlow completo. Ela pode ser reduzida exportando o modelo para TFLite ou ONNX Runtime. O modo LLM depende de chave e de rede externas, e a decisão de manter o modo offline como contingência garantiu que a plataforma funcione sempre. Também foi preciso contornar uma limitação do Wokwi: a rede da simulação não alcança o cluster. A solução foi um bridge MQTT por broker público, adequado para demonstração mas não para produção.</p>
+<h2>4.2. Feedback dos Usuários</h2>
+<p>Não foi feita avaliação formal com usuários finais nesta fase. A verificação seguiu roteiros de uso executados pelos integrantes no navegador e no emulador:</p>
+<ul>
+<li><em>Monitoramento:</em> identificar o paciente crítico e abrir a análise em 2 toques. Atendido, porque o app seleciona automaticamente o paciente mais grave na primeira abertura.</li>
+<li><em>Triagem:</em> descrever "dor no peito forte e falta de ar". O assistente classifica como emergência e oferece <strong>Ligar 192</strong>.</li>
+<li><em>Exame:</em> enviar uma imagem de ECG e ver a classe e as probabilidades em menos de 1 s.</li>
+</ul>
+<p>Como próximo passo, propõe-se um teste de usabilidade (SUS) com profissionais de enfermagem e a coleta de métricas de uso.</p>
+<h1 class="quebra"><a name="c5"></a>5. Conclusões e Trabalhos Futuros</h1>
+<p>A plataforma atingiu os objetivos propostos. Os cinco projetos formam um sistema coeso, conteinerizado e implantável em Kubernetes, com um único ponto de entrada e um app que funciona na web e no Android a partir do mesmo código. O IoT foi reescrito em MicroPython portável, e os pipelines automatizam testes, imagens, deploy, publicação na Vercel e build do APK.</p>
+<p><strong>Pontos fortes:</strong> integração real entre os componentes (IoT alimentando a IA), infraestrutura declarativa e reproduzível, resiliência (modo offline do multiagente, fila offline do dispositivo, saúde agregada) e cobertura de testes em todas as camadas.</p>
+<p><strong>Pontos a melhorar e plano de ação:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Ponto</th>
+<th>Ação proposta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Autenticação inexistente na API e no MQTT</td>
+<td>OIDC/JWT no gateway; MQTT com TLS (8883) e credenciais por dispositivo</td>
+</tr>
+<tr>
+<td>Estado em memória (sessões do chatbot, análises para perguntas) limita réplicas</td>
+<td>Persistir em Redis e escalar horizontalmente</td>
+</tr>
+<tr>
+<td>Broker público no caminho Wokwi → cluster</td>
+<td>Listener MQTT exposto com TLS ou Wokwi Private Gateway</td>
+</tr>
+<tr>
+<td>Imagem do vision grande</td>
+<td>Exportar o modelo para TFLite/ONNX e usar imagem <em>slim</em></td>
+</tr>
+<tr>
+<td>Observabilidade da aplicação</td>
+<td>Métricas Prometheus e tracing OpenTelemetry nos serviços</td>
+</tr>
+<tr>
+<td>Dados clínicos sintéticos</td>
+<td>Avaliar com bases reais anonimizadas (por exemplo PTB-XL e MIMIC-IV), com aprovação ética e adequação à LGPD</td>
+</tr>
+<tr>
+<td>Sensores simulados por potenciômetros</td>
+<td>Integrar MAX30102 (FC/SpO2) e um sensor de pressão reais no ESP32-S3</td>
+</tr>
+</tbody>
+</table>
+<h1 class="quebra"><a name="c6"></a>6. Referências</h1>
+<ol>
+<li>ORGANIZAÇÃO MUNDIAL DA SAÚDE. <em>Cardiovascular diseases (CVDs) – fact sheet</em>. Disponível em: https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds).</li>
+<li>OPENAI. <em>OpenAI Agents SDK – documentation</em>. Disponível em: https://openai.github.io/openai-agents-python/.</li>
+<li>MICROPYTHON. <em>MicroPython documentation (ESP32 e RP2)</em>. Disponível em: https://docs.micropython.org/.</li>
+<li>WOKWI. <em>Wokwi Docs – MicroPython e redes</em>. Disponível em: https://docs.wokwi.com/.</li>
+<li>INFLUXDATA. <em>Telegraf MQTT Consumer e InfluxDB 2.x</em>. Disponível em: https://docs.influxdata.com/.</li>
+<li>KUBERNETES. <em>Kubernetes Documentation – Workloads, Services, Kustomize</em>. Disponível em: https://kubernetes.io/docs/.</li>
+<li>EXPO. <em>Expo Documentation – EAS Build e publicação web</em>. Disponível em: https://docs.expo.dev/.</li>
+<li>VERCEL. <em>Vercel CLI e GitHub Actions</em>. Disponível em: https://vercel.com/docs.</li>
+<li>KHAN, A. H.; HUSSAIN, M. <em>ECG Images dataset of Cardiac Patients</em>. Mendeley Data / Kaggle.</li>
+<li>SOCIEDADE BRASILEIRA DE CARDIOLOGIA. <em>Diretrizes Brasileiras de Hipertensão Arterial</em>, 2020.</li>
+</ol>
+<h1 class="quebra"><a name="c7"></a>Anexos</h1>
+<h2>Anexo A · Diagrama de arquitetura</h2>
+<p><img src="file:///Users/seberino/dev/fiap_ano2_fase7_cap1/assets/arquitetura.png" alt="Arquitetura integrada do CardioIA" width="100%"></p>
+<h2>Anexo B · Evidências de execução</h2>
+<p><strong>Painel Grafana (paciente PAC-105, perfil choque):</strong></p>
+<p><img src="file:///Users/seberino/dev/fiap_ano2_fase7_cap1/assets/evidencias/grafana.png" alt="Painel Grafana com sinais vitais" width="100%"></p>
+<p><strong>App: sinais vitais, análise, assistente e ajustes:</strong></p>
+<p>
+<img src="file:///Users/seberino/dev/fiap_ano2_fase7_cap1/assets/evidencias/app-sinais.png" alt="Tela de sinais vitais" width="24%">
+<img src="file:///Users/seberino/dev/fiap_ano2_fase7_cap1/assets/evidencias/app-analise.png" alt="Tela de análise" width="24%">
+<img src="file:///Users/seberino/dev/fiap_ano2_fase7_cap1/assets/evidencias/app-chat.png" alt="Tela do assistente" width="24%">
+<img src="file:///Users/seberino/dev/fiap_ano2_fase7_cap1/assets/evidencias/app-ajustes.png" alt="Tela de ajustes" width="24%">
+</p>
+
+<h2>Anexo C · Recursos Kubernetes</h2>
+<table>
+<thead>
+<tr>
+<th>Recurso</th>
+<th>Tipo</th>
+<th>Réplicas</th>
+<th>Observação</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mosquitto</td>
+<td>Deployment + Service</td>
+<td>1</td>
+<td><code>mosquitto-externo</code> (LoadBalancer 1883) para dispositivos</td>
+</tr>
+<tr>
+<td>influxdb</td>
+<td>StatefulSet + PVC 5 Gi</td>
+<td>1</td>
+<td>setup automático; token via Secret</td>
+</tr>
+<tr>
+<td>telegraf</td>
+<td>Deployment</td>
+<td>1</td>
+<td>configuração via ConfigMap</td>
+</tr>
+<tr>
+<td>grafana</td>
+<td>Deployment + Service</td>
+<td>1</td>
+<td>datasource e dashboard provisionados; <code>grafana-externo</code></td>
+</tr>
+<tr>
+<td>gateway</td>
+<td>Deployment + Service + HPA + PDB</td>
+<td>2–6</td>
+<td><code>gateway-externo</code> (LoadBalancer 8080)</td>
+</tr>
+<tr>
+<td>multiagente / chatbot / vision</td>
+<td>Deployment + Service</td>
+<td>1</td>
+<td>probes de startup, readiness e liveness; requests e limits; não-root</td>
+</tr>
+<tr>
+<td>iot-simulador</td>
+<td>Deployment</td>
+<td>1</td>
+<td>mesmo firmware MicroPython em CPython</td>
+</tr>
+<tr>
+<td>cardioia (opcional)</td>
+<td>Ingress com TLS</td>
+<td>—</td>
+<td>overlay <code>config/k8s/ingress</code></td>
+</tr>
+</tbody>
+</table></body></html>

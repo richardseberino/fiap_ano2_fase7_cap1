@@ -1,0 +1,40 @@
+# Broker MQTT: recebe as leituras dos dispositivos IoT (e o bridge do Wokwi)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  labels: {app: mosquitto, tier: infra}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: mosquitto}}
+  template:
+    metadata: {labels: {app: mosquitto, tier: infra}}
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:2.0.20
+          ports:
+            - {name: mqtt, containerPort: 1883}
+            - {name: websockets, containerPort: 9001}
+          volumeMounts:
+            - {name: config, mountPath: /mosquitto/config/mosquitto.conf, subPath: mosquitto.conf}
+            - {name: dados, mountPath: /mosquitto/data}
+          readinessProbe: {tcpSocket: {port: 1883}, periodSeconds: 10}
+          livenessProbe: {tcpSocket: {port: 1883}, periodSeconds: 20}
+          resources:
+            requests: {cpu: 20m, memory: 32Mi}
+            limits: {memory: 128Mi}
+      volumes:
+        - {name: config, configMap: {name: mosquitto-config}}
+        - {name: dados, emptyDir: {}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+  labels: {app: mosquitto}
+spec:
+  selector: {app: mosquitto}
+  ports:
+    - {name: mqtt, port: 1883, targetPort: mqtt}
+    - {name: websockets, port: 9001, targetPort: websockets}

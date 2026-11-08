@@ -1,0 +1,8 @@
+# Overlay opcional: Ingress com TLS (cert-manager) para expor o gateway em HTTPS,
+# requisito para o app web publicado na Vercel (páginas HTTPS não chamam APIs HTTP).
+#   kubectl apply -k config/k8s/ingress
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../..
+  - ingress.yaml

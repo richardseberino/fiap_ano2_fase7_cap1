@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "author": "Grupo DRELL - FIAP",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-pi-pico-w",
+      "id": "mcu",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_bpm",
+      "top": -190,
+      "left": -260,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_spo2",
+      "top": -190,
+      "left": -150,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_pa",
+      "top": -190,
+      "left": -40,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht",
+      "top": -20,
+      "left": 240,
+      "attrs": {
+        "temperature": "36.8",
+        "humidity": "50"
+      }
+    },
+    {
+      "type": "board-ssd1306",
+      "id": "oled",
+      "top": 170,
+      "left": 230,
+      "attrs": {
+        "i2cAddress": "0x3c"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_vermelho",
+      "top": -170,
+      "left": 120,
+      "attrs": {
+        "color": "red",
+        "label": "Alerta"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_verde",
+      "top": -170,
+      "left": 170,
+      "attrs": {
+        "color": "limegreen",
+        "label": "Normal"
+      }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": -190,
+      "left": 230,
+      "attrs": {
+        "volume": "0.2"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_panico",
+      "top": 230,
+      "left": -220,
+      "attrs": {
+        "color": "red",
+        "label": "Panico"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "mcu:GP0",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "mcu:GP1",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "pot_bpm:VCC",
+      "mcu:3V3",
+      "red",
+      []
+    ],
+    [
+      "pot_bpm:GND",
+      "mcu:GND.1",
+      "black",
+      []
+    ],
+    [
+      "pot_bpm:SIG",
+      "mcu:GP26",
+      "green",
+      []
+    ],
+    [
+      "pot_spo2:VCC",
+      "mcu:3V3",
+      "red",
+      []
+    ],
+    [
+      "pot_spo2:GND",
+      "mcu:GND.1",
+      "black",
+      []
+    ],
+    [
+      "pot_spo2:SIG",
+      "mcu:GP27",
+      "blue",
+      []
+    ],
+    [
+      "pot_pa:VCC",
+      "mcu:3V3",
+      "red",
+      []
+    ],
+    [
+      "pot_pa:GND",
+      "mcu:GND.1",
+      "black",
+      []
+    ],
+    [
+      "pot_pa:SIG",
+      "mcu:GP28",
+      "purple",
+      []
+    ],
+    [
+      "dht:VCC",
+      "mcu:3V3",
+      "red",
+      []
+    ],
+    [
+      "dht:GND",
+      "mcu:GND.2",
+      "black",
+      []
+    ],
+    [
+      "dht:SDA",
+      "mcu:GP15",
+      "orange",
+      []
+    ],
+    [
+      "oled:VCC",
+      "mcu:3V3",
+      "red",
+      []
+    ],
+    [
+      "oled:GND",
+      "mcu:GND.2",
+      "black",
+      []
+    ],
+    [
+      "oled:SDA",
+      "mcu:GP4",
+      "cyan",
+      []
+    ],
+    [
+      "oled:SCL",
+      "mcu:GP5",
+      "magenta",
+      []
+    ],
+    [
+      "led_vermelho:A",
+      "mcu:GP14",
+      "red",
+      []
+    ],
+    [
+      "led_vermelho:C",
+      "mcu:GND.3",
+      "black",
+      []
+    ],
+    [
+      "led_verde:A",
+      "mcu:GP13",
+      "green",
+      []
+    ],
+    [
+      "led_verde:C",
+      "mcu:GND.3",
+      "black",
+      []
+    ],
+    [
+      "buzzer:2",
+      "mcu:GP12",
+      "gold",
+      []
+    ],
+    [
+      "buzzer:1",
+      "mcu:GND.3",
+      "black",
+      []
+    ],
+    [
+      "btn_panico:1.l",
+      "mcu:GP16",
+      "white",
+      []
+    ],
+    [
+      "btn_panico:2.l",
+      "mcu:GND.2",
+      "black",
+      []
+    ]
+  ],
+  "dependencies": {}
+}

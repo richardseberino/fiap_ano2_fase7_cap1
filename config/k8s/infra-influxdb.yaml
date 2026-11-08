@@ -1,0 +1,50 @@
+# Banco de séries temporais dos sinais vitais (setup automático na primeira subida)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: influxdb
+  labels: {app: influxdb, tier: infra}
+spec:
+  serviceName: influxdb
+  replicas: 1
+  selector: {matchLabels: {app: influxdb}}
+  template:
+    metadata: {labels: {app: influxdb, tier: infra}}
+    spec:
+      containers:
+        - name: influxdb
+          image: influxdb:2.7-alpine
+          ports: [{name: http, containerPort: 8086}]
+          env:
+            - {name: DOCKER_INFLUXDB_INIT_MODE, value: setup}
+            - {name: DOCKER_INFLUXDB_INIT_RETENTION, value: 30d}
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: INFLUX_ADMIN_USER}}
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: INFLUX_ADMIN_PASSWORD}}
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: INFLUX_ORG}}
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: INFLUX_BUCKET}}
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: INFLUX_TOKEN}}
+          volumeMounts: [{name: dados, mountPath: /var/lib/influxdb2}]
+          readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, initialDelaySeconds: 30, periodSeconds: 20}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1Gi}
+  volumeClaimTemplates:
+    - metadata: {name: dados}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: {requests: {storage: 5Gi}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  labels: {app: influxdb}
+spec:
+  selector: {app: influxdb}
+  ports: [{name: http, port: 8086, targetPort: http}]

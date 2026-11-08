@@ -1,0 +1,40 @@
+# Build mobile na nuvem com EAS: gera o .apk (perfil preview) a cada release ou sob demanda.
+# Secret: EXPO_TOKEN (https://expo.dev/settings/access-tokens)
+# Variável do repositório: EXPO_PUBLIC_API_URL (URL HTTPS do gateway embutida no app)
+name: EAS Build (Android)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      perfil:
+        description: "Perfil do eas.json"
+        default: preview
+        type: choice
+        options: [preview, production]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/mobile/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - name: Ajusta a URL do gateway no perfil
+        if: ${{ vars.EXPO_PUBLIC_API_URL != '' }}
+        run: |
+          node -e "const f='eas.json',j=require('./'+f);for(const p of ['preview','production'])j.build[p].env.EXPO_PUBLIC_API_URL='${{ vars.EXPO_PUBLIC_API_URL }}';require('fs').writeFileSync(f,JSON.stringify(j,null,2))"
+      - name: Build Android
+        run: eas build --platform android --profile ${{ github.event.inputs.perfil || 'preview' }} --non-interactive --no-wait

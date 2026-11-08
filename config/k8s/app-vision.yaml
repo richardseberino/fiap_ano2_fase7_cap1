@@ -1,0 +1,35 @@
+# Classificação de ECG por CNN (TensorFlow). Escala por réplicas: o modelo é carregado por pod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vision
+  labels: {app: vision, tier: app}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: vision}}
+  strategy: {type: RollingUpdate, rollingUpdate: {maxUnavailable: 0, maxSurge: 1}}
+  template:
+    metadata: {labels: {app: vision, tier: app}}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: vision
+          image: cardioia-vision
+          imagePullPolicy: IfNotPresent
+          ports: [{name: http, containerPort: 5000}]
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          startupProbe: {httpGet: {path: /health, port: http}, initialDelaySeconds: 45, periodSeconds: 5, failureThreshold: 36}
+          readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 20, failureThreshold: 3}
+          resources:
+            requests: {cpu: 250m, memory: 1Gi}
+            limits: {memory: 3Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vision
+  labels: {app: vision}
+spec:
+  selector: {app: vision}
+  ports: [{name: http, port: 5000, targetPort: http}]

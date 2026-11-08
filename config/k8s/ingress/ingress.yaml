@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cardioia
+  namespace: cardioia
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt   # requer cert-manager + ClusterIssuer
+spec:
+  ingressClassName: traefik                       # ajuste para o controller do cluster
+  tls:
+    - hosts: [api.cardioia.exemplo.com, grafana.cardioia.exemplo.com]
+      secretName: cardioia-tls
+  rules:
+    - host: api.cardioia.exemplo.com
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: gateway, port: {number: 8080}}}}
+    - host: grafana.cardioia.exemplo.com
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: grafana, port: {number: 3000}}}}

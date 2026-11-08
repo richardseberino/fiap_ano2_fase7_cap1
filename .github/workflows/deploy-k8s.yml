@@ -1,0 +1,39 @@
+# Implanta (ou atualiza) a plataforma em um cluster Kubernetes.
+# Requer o secret KUBECONFIG (conteúdo do kubeconfig, em base64) e o secret SECRETS_ENV
+# (conteúdo do config/secrets.env com tokens/senhas de produção).
+name: Deploy Kubernetes
+
+on:
+  workflow_run:
+    workflows: ["Build de imagens"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag das imagens (ex.: latest, sha-abc1234, 2.0.0)"
+        default: latest
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: producao
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configura acesso ao cluster
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          echo "${{ secrets.SECRETS_ENV }}" > config/secrets.env
+      - name: Fixa a tag das imagens
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then TAG="${{ github.event.inputs.tag }}"
+          else SHA="${{ github.event.workflow_run.head_sha }}"; TAG="sha-${SHA:0:7}"; fi
+          sed -i "s|ghcr.io/richardseberino|ghcr.io/${{ github.repository_owner }}|; s/newTag: .*/newTag: $TAG/" config/kustomization.yaml
+          grep -A1 newName config/kustomization.yaml
+      - run: kubectl apply -k config/
+      - run: |
+          for d in gateway multiagente chatbot vision iot-simulador; do
+            kubectl -n cardioia rollout status deploy/$d --timeout=600s
+          done

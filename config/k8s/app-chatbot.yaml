@@ -1,0 +1,45 @@
+# Chatbot de triagem (NLP local ou IBM Watson). 1 réplica: sessões de conversa ficam em memória.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatbot
+  labels: {app: chatbot, tier: app}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: chatbot}}
+  strategy: {type: RollingUpdate, rollingUpdate: {maxUnavailable: 0, maxSurge: 1}}
+  template:
+    metadata: {labels: {app: chatbot, tier: app}}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: chatbot
+          image: cardioia-chatbot
+          imagePullPolicy: IfNotPresent
+          ports: [{name: http, containerPort: 5000}]
+          env:
+            - {name: FLASK_HOST, value: 0.0.0.0}
+            - name: USE_WATSON
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: USE_WATSON, optional: true}}
+            - name: WATSON_APIKEY
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: WATSON_APIKEY, optional: true}}
+            - name: WATSON_URL
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: WATSON_URL, optional: true}}
+            - name: WATSON_ASSISTANT_ID
+              valueFrom: {secretKeyRef: {name: cardioia-secrets, key: WATSON_ASSISTANT_ID, optional: true}}
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          startupProbe: {httpGet: {path: /api/health, port: http}, initialDelaySeconds: 5, periodSeconds: 5, failureThreshold: 36}
+          readinessProbe: {httpGet: {path: /api/health, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /api/health, port: http}, periodSeconds: 20, failureThreshold: 3}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 512Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatbot
+  labels: {app: chatbot}
+spec:
+  selector: {app: chatbot}
+  ports: [{name: http, port: 5000, targetPort: http}]

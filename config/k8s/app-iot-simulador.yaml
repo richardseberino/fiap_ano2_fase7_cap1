@@ -1,0 +1,27 @@
+# Monitores IoT virtuais: o mesmo firmware MicroPython executando em CPython (perfil "dispositivo Linux").
+# Gera leituras contínuas de 5 pacientes para demonstração; escale para 0 quando usar só o Wokwi.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iot-simulador
+  labels: {app: iot-simulador, tier: edge}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: iot-simulador}}
+  template:
+    metadata: {labels: {app: iot-simulador, tier: edge}}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: iot-simulador
+          image: cardioia-iot-simulador
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: MQTT_BROKER, value: mosquitto}
+            - {name: MQTT_PREFIXO, value: cardioia/sinais-vitais}
+            - name: PACIENTES
+              value: "PAC-101:estavel:UTI_01,PAC-102:taquicardia:UTI_01,PAC-103:hipoxemia:UTI_02,PAC-104:febril:ENFERMARIA,PAC-105:choque:UTI_02"
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {memory: 128Mi}

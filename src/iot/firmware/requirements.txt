@@ -1,0 +1,4 @@
+# Somente para rodar o firmware em Linux (Raspberry Pi, PC, container) e os testes.
+# Em MicroPython nada precisa ser instalado: umqtt.simple, dht, framebuf e network já vêm no firmware.
+paho-mqtt>=2.1
+pytest>=8.0

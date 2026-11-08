@@ -1,0 +1,32 @@
+{
+  "recomendacao": {
+    "paciente_id": "PAC-003-baixo",
+    "probabilidade_pico_risco": 0.0,
+    "classificacao_risco": "BAIXO",
+    "fatores_de_risco": [],
+    "protocolos_sugeridos": [],
+    "acoes_operacionais": [
+      {
+        "prioridade": 3,
+        "acao": "Manter acompanhamento de rotina e reavaliar sinais vitais a cada 4 h",
+        "responsavel": "Equipe de enfermagem",
+        "prazo": "Rotina",
+        "protocolo_origem": "Sem protocolo acionado (acompanhamento de rotina)"
+      }
+    ],
+    "parametros_em_atencao": [],
+    "justificativa": "O paciente apresenta risco baixo de eventos cardíacos, conforme previsto pelo modelo Random Forest, sem fatores de risco identificados. Nenhum protocolo específico foi acionado, indicando estabilidade clínica. Recomenda-se manter o acompanhamento de rotina para garantir monitoramento contínuo.",
+    "aviso": "Apoio \u0000 decis\u0000o gerado com dados sint\u0000ticos para fins acad\u0000micos. N\u0000o substitui avalia\u0000o m\u0000dica."
+  },
+  "trilha": [
+    "Handoff para Agente Analista de Risco",
+    "Modelo de ML: probabilidade 0.00 (BAIXO)",
+    "Handoff para Agente Orquestrador",
+    "Handoff para Agente Especialista em Protocolos",
+    "Base de protocolos: 0 protocolo(s) acionado(s)",
+    "Handoff para Agente Orquestrador",
+    "Handoff para Agente Planejador de Resposta",
+    "Plano operacional: 1 ação(ões)",
+    "Guardrail de saída: aprovado"
+  ]
+}

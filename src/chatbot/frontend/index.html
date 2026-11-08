@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assistente Cardiologico Conversacional</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app__header">
+      <div class="brand">
+        <span class="brand__icon" aria-hidden="true">&#10084;</span>
+        <div>
+          <h1>Assistente Cardiologico</h1>
+          <p>Triagem inicial em saude &mdash; prototipo educacional</p>
+        </div>
+      </div>
+      <div class="header__actions">
+        <span id="engineBadge" class="badge" title="Motor de conversacao em uso">...</span>
+        <button id="resetBtn" class="btn-reset" type="button">Nova conversa</button>
+      </div>
+    </header>
+
+    <main id="chat" class="chat" aria-live="polite"></main>
+
+    <div id="quickReplies" class="quick-replies"></div>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <input
+        id="input"
+        class="composer__input"
+        type="text"
+        placeholder="Descreva o que voce esta sentindo..."
+        aria-label="Mensagem"
+        required
+      />
+      <button id="sendBtn" class="composer__send" type="submit">Enviar</button>
+    </form>
+
+    <footer class="app__footer">
+      Em emergencia, ligue <strong>192 (SAMU)</strong>. Este assistente nao substitui avaliacao medica.
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
